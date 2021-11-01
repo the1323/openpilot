@@ -1,4 +1,4 @@
-from selfdrive.car.honda.values import HONDA_BOSCH, CAR, CarControllerParams
+from selfdrive.car.honda.values import HONDA_BOSCH, HONDA_RADARLESS, CAR, CarControllerParams
 from selfdrive.config import Conversions as CV
 
 # CAN bus layout with relay
@@ -101,11 +101,13 @@ def create_bosch_supplemental_1(packer, car_fingerprint, idx):
 def create_ui_commands(packer, pcm_speed, hud, car_fingerprint, is_metric, idx, openpilot_longitudinal_control, stock_hud):
   commands = []
   bus_pt = get_pt_bus(car_fingerprint)
-  radar_disabled = car_fingerprint in HONDA_BOSCH and openpilot_longitudinal_control
+  # TODO: Check both Bosch and Radarless
+  radar_disabled = car_fingerprint in HONDA_RADARLESS and openpilot_longitudinal_control
   bus_lkas = get_lkas_cmd_bus(car_fingerprint, radar_disabled)
 
   if openpilot_longitudinal_control:
-    if car_fingerprint in HONDA_BOSCH:
+    # TODO: Check both Bosch and Radarless
+    if car_fingerprint in HONDA_RADARLESS:
       acc_hud_values = {
         'CRUISE_SPEED': hud.v_cruise,
         'ENABLE_MINI_CAR': 1,

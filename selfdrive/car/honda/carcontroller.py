@@ -5,7 +5,7 @@ from selfdrive.controls.lib.drive_helpers import rate_limit
 from common.numpy_fast import clip, interp
 from selfdrive.car import create_gas_command
 from selfdrive.car.honda import hondacan
-from selfdrive.car.honda.values import CruiseButtons, VISUAL_HUD, HONDA_BOSCH, HONDA_NIDEC_ALT_PCM_ACCEL, CarControllerParams
+from selfdrive.car.honda.values import CruiseButtons, VISUAL_HUD, HONDA_BOSCH, HONDA_NIDEC_ALT_PCM_ACCEL, HONDA_RADARLESS, CarControllerParams
 from opendbc.can.packer import CANPacker
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -27,7 +27,8 @@ def compute_gb_honda_nidec(accel, speed):
 
 
 def compute_gas_brake(accel, speed, fingerprint):
-  if fingerprint in HONDA_BOSCH:
+  # TODO: Check both Bosch and Radarless
+  if fingerprint in HONDA_RADARLESS:
     return compute_gb_honda_bosch(accel, speed)
   else:
     return compute_gb_honda_nidec(accel, speed)
@@ -210,7 +211,8 @@ class CarController():
         idx = frame // 2
         ts = frame * DT_CTRL
 
-        if CS.CP.carFingerprint in HONDA_BOSCH:
+        # TODO: Check both Bosch and Radarless
+        if CS.CP.carFingerprint in HONDA_RADARLESS:
           accel = clip(accel, P.BOSCH_ACCEL_MIN, P.BOSCH_ACCEL_MAX)
           bosch_gas = interp(accel, P.BOSCH_GAS_LOOKUP_BP, P.BOSCH_GAS_LOOKUP_V)
           can_sends.extend(hondacan.create_acc_commands(self.packer, enabled, active, accel, bosch_gas, idx, stopping, starting, CS.CP.carFingerprint))
