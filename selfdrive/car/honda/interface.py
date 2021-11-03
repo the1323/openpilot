@@ -43,7 +43,7 @@ class CarInterface(CarInterfaceBase):
 
       ret.pcmCruise = not ret.openpilotLongitudinalControl
     elif candidate in HONDA_RADARLESS:
-      ret.safetyModel = car.CarParams.SafetyModel.hondaRadarlessHarness
+      ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hondaRadarlessHarness)]
       ret.radarOffCan = True
 
       # Disable the radar and let openpilot control longitudinal
