@@ -342,7 +342,7 @@ class CarState(CarStateBase):
       signals += [("CRUISE_SPEED", "ACC_HUD", 255),
               ]
       checks += [
-        ("ACC_HUD", 10),
+        ("ACC_HUD", 0),
       ]
 
     elif CP.carFingerprint not in HONDA_BOSCH:
