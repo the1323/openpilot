@@ -96,7 +96,7 @@ def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
         ("AEB_STATUS", "ACC_CONTROL", 0),
       ]
       checks += [
-        ("ACC_HUD", 10),
+        ("ACC_HUD", 0),
         ("ACC_CONTROL", 50),
       ]
   else:  # Nidec signals
