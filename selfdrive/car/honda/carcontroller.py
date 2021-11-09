@@ -27,8 +27,7 @@ def compute_gb_honda_nidec(accel, speed):
 
 
 def compute_gas_brake(accel, speed, fingerprint):
-  # TODO: Check both Bosch and Radarless
-  if fingerprint in HONDA_RADARLESS:
+  if fingerprint in HONDA_BOSCH or fingerprint in HONDA_RADARLESS:
     return compute_gb_honda_bosch(accel, speed)
   else:
     return compute_gb_honda_nidec(accel, speed)
@@ -211,8 +210,7 @@ class CarController():
         idx = frame // 2
         ts = frame * DT_CTRL
 
-        # TODO: Check both Bosch and Radarless
-        if CS.CP.carFingerprint in HONDA_RADARLESS:
+        if CS.CP.carFingerprint in HONDA_BOSCH or CS.CP.carFingerprint in HONDA_RADARLESS:
           accel = clip(accel, P.BOSCH_ACCEL_MIN, P.BOSCH_ACCEL_MAX)
           bosch_gas = interp(accel, P.BOSCH_GAS_LOOKUP_BP, P.BOSCH_GAS_LOOKUP_V)
           can_sends.extend(hondacan.create_acc_commands(self.packer, enabled, active, accel, bosch_gas, idx, stopping, starting, CS.CP.carFingerprint))

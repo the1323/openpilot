@@ -19,7 +19,7 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     # TODO: Check both Bosch and Radarless
-    if CP.carFingerprint in HONDA_RADARLESS:
+    if CP.carFingerprint in HONDA_BOSCH or CP.carFingerprint in HONDA_RADARLESS:
       return CarControllerParams.BOSCH_ACCEL_MIN, CarControllerParams.BOSCH_ACCEL_MAX
     else:
       # NIDECs don't allow acceleration near cruise_speed,
@@ -301,8 +301,7 @@ class CarInterface(CarInterfaceBase):
     if candidate in HONDA_BOSCH_ALT_BRAKE_SIGNAL:
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HONDA_ALT_BRAKE
 
-    # TODO: Check both Bosch and Radarless
-    if ret.openpilotLongitudinalControl and candidate in HONDA_RADARLESS:
+    if ret.openpilotLongitudinalControl and candidate in HONDA_BOSCH or candidate in HONDA_RADARLESS:
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HONDA_BOSCH_LONG
 
     # min speed to enable ACC. if car can do stop and go, then set enabling speed

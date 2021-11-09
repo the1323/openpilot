@@ -77,8 +77,7 @@ def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
     signals += [("BRAKE_PRESSED", "BRAKE_MODULE", 0)]
     checks += [("BRAKE_MODULE", 50)]
 
-  # TODO: Check both Bosch and Radarless
-  if CP.carFingerprint in HONDA_RADARLESS:
+  if CP.carFingerprint in HONDA_BOSCH or CP.carFingerprint in HONDA_RADARLESS:
     signals += [
       ("EPB_STATE", "EPB_STATUS", 0),
       ("IMPERIAL_UNIT", "CAR_SPEED", 1),
@@ -260,8 +259,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["STEER_MOTOR_TORQUE"]["MOTOR_TORQUE"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD.get(self.CP.carFingerprint, 1200)
 
-    # TODO: Check both Bosch and Radarless
-    if self.CP.carFingerprint in HONDA_RADARLESS:
+    if self.CP.carFingerprint in HONDA_BOSCH or self.CP.carFingerprint in HONDA_RADARLESS:
       if not self.CP.openpilotLongitudinalControl:
         ret.cruiseState.nonAdaptive = cp.vl["ACC_HUD"]["CRUISE_CONTROL_LABEL"] != 0
         ret.cruiseState.standstill = cp.vl["ACC_HUD"]["CRUISE_SPEED"] == 252.
@@ -303,14 +301,12 @@ class CarState(CarStateBase):
     else:
       self.is_metric = False
 
-    # TODO: Check both Bosch and Radarless
-    if self.CP.carFingerprint in HONDA_RADARLESS:
+    if self.CP.carFingerprint in HONDA_BOSCH or self.CP.carFingerprint in HONDA_RADARLESS:
       ret.stockAeb = (not self.CP.openpilotLongitudinalControl) and bool(cp.vl["ACC_CONTROL"]["AEB_STATUS"] and cp.vl["ACC_CONTROL"]["ACCEL_COMMAND"] < -1e-5)
     else:
       ret.stockAeb = bool(cp_cam.vl["BRAKE_COMMAND"]["AEB_REQ_1"] and cp_cam.vl["BRAKE_COMMAND"]["COMPUTER_BRAKE"] > 1e-5)
 
-    # TODO: Check both Bosch and Radarless
-    if self.CP.carFingerprint in HONDA_RADARLESS:
+    if self.CP.carFingerprint in HONDA_BOSCH or self.CP.carFingerprint in HONDA_RADARLESS:
       self.stock_hud = False
       ret.stockFcw = False
     else:
