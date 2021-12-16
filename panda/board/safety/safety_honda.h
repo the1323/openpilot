@@ -419,7 +419,7 @@ static int honda_bosch_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   return bus_fwd;
 }
 
-static int honda_radarless_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
+static int honda_radarless_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   // fwd from car to camera. also fwd certain msgs from camera to car
   // no radar bus on this car
   // 0xE4 is steering on all cars except CRV and RDX, 0x194 for CRV and RDX,
