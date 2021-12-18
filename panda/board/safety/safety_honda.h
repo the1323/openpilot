@@ -190,7 +190,7 @@ static int honda_rx_hook(CANPacket_t *to_push) {
     }
 
     bool stock_ecu_detected = false;
-    int bus_rdr_car = (honda_hw == HONDA_BOSCH) ? 0 : 2;  // radar bus, car side
+    //int bus_rdr_car = (honda_hw == HONDA_BOSCH) ? 0 : 2;  // radar bus, car side
     int pt_bus = (honda_hw == HONDA_BOSCH) ? 1 : 0;
 
     if (safety_mode_cnt > RELAY_TRNS_TIMEOUT) {
