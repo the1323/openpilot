@@ -190,14 +190,14 @@ static int honda_rx_hook(CANPacket_t *to_push) {
     }
 
     bool stock_ecu_detected = false;
-    //int bus_rdr_car = (honda_hw == HONDA_BOSCH) ? 0 : 2;  // radar bus, car side
+    int bus_rdr_car = (honda_hw == HONDA_BOSCH) ? 0 : 2;  // radar bus, car side
     int pt_bus = (honda_hw == HONDA_BOSCH) ? 1 : 0;
 
     if (safety_mode_cnt > RELAY_TRNS_TIMEOUT) {
       // If steering controls messages are received on the destination bus, it's an indication
       // that the relay might be malfunctioning
       if ((addr == 0xE4) || (addr == 0x194)) {
-        if (((honda_hw == HONDA_RL) && (bus == 0)) || ((honda_hw != HONDA_NIDEC) && (bus == bus_rdr_car))) {
+        if (((honda_hw == HONDA_BOSCH) && (bus == bus_rdr_car)) || ((honda_hw == HONDA_NIDEC) && (bus == 0)) || ((honda_hw == HONDA_RL) && (bus == 0))) {
           stock_ecu_detected = true;
         }
       }
