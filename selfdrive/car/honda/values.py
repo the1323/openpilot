@@ -1354,37 +1354,44 @@ FW_VERSIONS = {
   },
   CAR.CIVIC_22:{
     (Ecu.eps, 0x18DA30F1, None):[
-      b'39990-T39-A130\x00\x00'
+      b'39990-T39-A130\x00\x00',
+      b'39990-T43-J020\x00\x00', #hatch
     ],
     (Ecu.gateway, 0x18DAEFF1, None):[
       b'38897-T20-A020\x00\x00',
+      b'38897-T20-A510\x00\x00', #hatch
       b'38897-T21-A010\x00\x00',
     ],
     (Ecu.srs, 0x18DA53F1, None):[
-      b'77959-T20-A970\x00\x00'
+      b'77959-T20-A970\x00\x00',
+      b'77959-T47-A940\x00\x00', #hatch
     ],
     (Ecu.combinationMeter, 0x18DA60F1, None):[
       b'78108-T21-A220\x00\x00',
       b'78108-T21-A620\x00\x00',
+      b'78108-T23-A110\x00\x00', #hatch
     ],
     # This car doesn't have a radar, so is this really the camera fw?
-    (Ecu.fwdRadar, 0x18dab0f1, None): [
-      b'36161-T20-A060\x00\x00'
-    ],
+    #(Ecu.fwdRadar, 0x18dab0f1, None): [
+    #  b'36161-T20-A060\x00\x00'
+    #],
     (Ecu.vsa, 0x18DA28F1, None):[
-      b'57114-T20-AB40\x00\x00'
+      b'57114-T20-AB40\x00\x00',
+      b'57114-T43-JB30\x00\x00', #hatch
     ],
     (Ecu.transmission, 0x18da1ef1, None): [
       b'28101-65D-A020\x00\x00',
+      b'28101-65D-A120\x00\x00', #hatch
       b'28101-65H-A020\x00\x00',
     ],
     (Ecu.programmedFuelInjection, 0x18da10f1, None): [
       b'37805-64L-A540\x00\x00',
       b'37805-64S-A540\x00\x00',
+      b'37805-64S-A720\x00\x00', #hatch
     ],
-    (Ecu.electricBrakeBooster, 0x18da2bf1, None): [
-      b'39494-T20-A010\x00\x00',
-    ],
+    #(Ecu.electricBrakeBooster, 0x18da2bf1, None): [
+    #  b'39494-T20-A010\x00\x00',
+    #],
   },
 }
 
