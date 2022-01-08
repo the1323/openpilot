@@ -386,6 +386,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.lkMode = self.CS.lkMode
     ret.engineRPM = self.CS.engineRPM
+    ret.brakeToggle = self.CS.brakeToggle
     buttonEvents = []
 
     if self.CS.cruise_buttons != self.CS.prev_cruise_buttons:
@@ -436,16 +437,13 @@ class CarInterface(CarInterfaceBase):
       # we engage when pcm is active (rising edge)
       if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
         events.add(EventName.pcmEnable)
-      elif not ret.cruiseState.enabled and (c.actuators.accel >= 0. or not self.CP.openpilotLongitudinalControl):
-        # it can happen that car cruise disables while comma system is enabled: need to
-        # keep braking if needed or if the speed is very low
-        if ret.vEgo < self.CP.minEnableSpeed + 2.:
-          # non loud alert if cruise disables below 25mph as expected (+ a little margin)
-          events.add(EventName.speedTooLow)
+      elif self.CS.preEnableAlert:
+        events.add(EventName.longPreEnable)
+      elif (self.CP.pcmCruise and not ret.cruiseState.enabled):
+        if self.CS.brakeToggle:
+          events.add(EventName.acceleratorDisabled)
         else:
-          events.add(EventName.cruiseDisabled)
-    if self.CS.CP.minEnableSpeed > 0 and ret.vEgo < 0.001:
-      events.add(EventName.manualRestart)
+          events.add(EventName.lkasOnly) #If PCM is not taking computer_gas requests and user has pressed the gas pedal (which disables braking) -wirelessnet2
 
     # handle button presses
     for b in ret.buttonEvents:

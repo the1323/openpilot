@@ -256,17 +256,20 @@ class Controls:
     if self.can_rcv_error or not CS.canValid:
       self.events.add(EventName.canError)
 
-    for i, pandaState in enumerate(self.sm['pandaStates']):
-      # All pandas must match the list of safetyConfigs, and if outside this list, must be silent or noOutput
-      if i < len(self.CP.safetyConfigs):
-        safety_mismatch = pandaState.safetyModel != self.CP.safetyConfigs[i].safetyModel or pandaState.safetyParam != self.CP.safetyConfigs[i].safetyParam
-      else:
-        safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
-      if safety_mismatch or self.mismatch_counter >= 200:
-        self.events.add(EventName.controlsMismatch)
+    if not CS.passMode: 
+      for i, pandaState in enumerate(self.sm['pandaStates']):
+        # All pandas must match the list of safetyConfigs, and if outside this list, must be silent or noOutput
+        if i < len(self.CP.safetyConfigs):
+          safety_mismatch = pandaState.safetyModel != self.CP.safetyConfigs[i].safetyModel or pandaState.safetyParam != self.CP.safetyConfigs[i].safetyParam
+        else:
+          safety_mismatch = pandaState.safetyModel not in IGNORED_SAFETY_MODES
+        if safety_mismatch or self.mismatch_counter >= 200:
+          self.events.add(EventName.controlsMismatch)
 
-      if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
-        self.events.add(EventName.relayMalfunction)
+        if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
+          self.events.add(EventName.relayMalfunction)
+    else:
+        self.mismatch_counter = 0
 
     # Check for HW or system issues
     if len(self.sm['radarState'].radarErrors):

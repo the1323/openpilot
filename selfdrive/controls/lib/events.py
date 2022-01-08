@@ -445,6 +445,30 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.warningImmediate, .1),
   },
 
+  EventName.acceleratorDisabled: {
+    ET.WARNING: Alert(
+      "",
+      "",
+      AlertStatus.userPrompt, AlertSize.none,
+      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .1, alert_rate=0.25),
+  },
+
+  EventName.lkasOnly: {
+    ET.WARNING: Alert(
+      "",
+      "",
+      AlertStatus.critical, AlertSize.none,
+      Priority.MID, VisualAlert.none, AudibleAlert.none, .1, alert_rate=0.75),
+  },
+
+  EventName.longPreEnable: {
+    ET.WARNING: Alert(
+      "OpenPilot Accel and Brake DISABLED",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
+  },
+
   EventName.manualSteeringRequired: {
     ET.WARNING: Alert(
       "STEERING REQUIRED: AutoSteer OFF",

@@ -147,6 +147,7 @@ class CarController():
     apply_steer = int(interp(-actuators.steer * P.STEER_MAX, P.STEER_LOOKUP_BP, P.STEER_LOOKUP_V))
 
     lkas_active = enabled and not CS.steer_not_allowed and CS.lkMode
+    brake_active = CS.brakeToggle
 
     # Send CAN commands.
     can_sends = []
@@ -191,7 +192,7 @@ class CarController():
                      clip(CS.out.vEgo + 2.0, 0.0, 100.0),
                      clip(CS.out.vEgo + 5.0, 0.0, 100.0)]
       pcm_speed = interp(gas-brake, pcm_speed_BP, pcm_speed_V)
-      pcm_accel = int(clip((accel/1.44)/max_accel, 0.0, 1.0) * 0xc6)
+      pcm_accel = int(clip((accel/1.44)/max_accel, 0.0, 1.0) * 0xc6) if CS.gasToggle else 0
 
     if not CS.CP.openpilotLongitudinalControl:
       if (frame % 2) == 0:
@@ -218,10 +219,9 @@ class CarController():
           apply_brake = clip(self.brake_last - wind_brake, 0.0, 1.0)
           apply_brake = int(clip(apply_brake * P.NIDEC_BRAKE_MAX, 0, P.NIDEC_BRAKE_MAX - 1))
           pump_on, self.last_pump_ts = brake_pump_hysteresis(apply_brake, self.apply_brake_last, self.last_pump_ts, ts)
-
           pcm_override = True
-          can_sends.append(hondacan.create_brake_command(self.packer, apply_brake,
-            pcm_override, pcm_cancel_cmd, fcw_display, idx, CS.CP.carFingerprint, CS.stock_brake))
+          can_sends.append(hondacan.create_brake_command(self.packer, apply_brake, #Clarity: We don't use comma's brake pump algo because it casues jerky braking on Clarity. -wirelessnet2
+            pcm_override, pcm_cancel_cmd, fcw_display, idx, CS.CP.carFingerprint, CS.stock_brake, brake_active))
           self.apply_brake_last = apply_brake
 
           if CS.CP.enableGasInterceptor:
