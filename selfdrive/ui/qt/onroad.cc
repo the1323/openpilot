@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include <QDebug>
+#include <QString>
 
 #include "selfdrive/common/timing.h"
 #include "selfdrive/ui/qt/util.h"
@@ -164,6 +165,7 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 OnroadHud::OnroadHud(QWidget *parent) : QWidget(parent) {
   engage_img = QPixmap("../assets/img_chffr_wheel.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   dm_img = QPixmap("../assets/img_driver_face.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  brake_img = QPixmap("../assets/img_brake_disc.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
   connect(this, &OnroadHud::valueChanged, [=] { update(); });
 }
@@ -178,7 +180,7 @@ void OnroadHud::updateState(const UIState &s) {
   if (cruise_set && !s.scene.is_metric) {
     maxspeed *= KM_TO_MILE;
   }
-  QString maxspeed_str = cruise_set ? QString::number(std::nearbyint(maxspeed)) : "N/A";
+  QString maxspeed_str = cruise_set ? QString::number(std::nearbyint(maxspeed)) : "-";
   float cur_speed = std::max(0.0, sm["carState"].getCarState().getVEgo() * (s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
 
   setProperty("is_cruise_set", cruise_set);
@@ -187,13 +189,162 @@ void OnroadHud::updateState(const UIState &s) {
   setProperty("speedUnit", s.scene.is_metric ? "km/h" : "mph");
   setProperty("hideDM", cs.getAlertSize() != cereal::ControlsState::AlertSize::NONE);
   setProperty("status", s.status);
+  setProperty("engageable", cs.getEngageable() || cs.getEnabled());
+  setProperty("dmActive", sm["driverMonitoringState"].getDriverMonitoringState().getIsActiveMode());
+  // -1.96133 is -0.2g of braking force, which is where most one-pedal enabled cars turn on brakelight -wn2
+  setProperty("braking", sm["carControl"].getCarControl().getActuators().getAccel() < -1.96133 || sm["carState"].getCarState().getBrakePressed());
+  
+  const auto leadOne = sm["radarState"].getRadarState().getLeadOne();
+  setProperty("lead_d_rel", leadOne.getDRel());
+  setProperty("lead_v_rel", leadOne.getVRel());
+  setProperty("lead_status", leadOne.getStatus());
+  setProperty("angleSteers", sm["carState"].getCarState().getSteeringAngleDeg());
 
-  // update engageability and DM icons at 2Hz
-  if (sm.frame % (UI_FREQ / 2) == 0) {
-    setProperty("engageable", cs.getEngageable() || cs.getEnabled());
-    setProperty("dmActive", sm["driverMonitoringState"].getDriverMonitoringState().getIsActiveMode());
-  }
+  // If your car uses INDI or LQR, adjust this accordingly. -wirelessnet2
+  setProperty("steerAngleDesired", sm["controlsState"].getControlsState().getLateralControlState().getPidState().getSteeringAngleDesiredDeg());
+  setProperty("engineRPM", sm["carState"].getCarState().getEngineRPM());
 }
+
+int OnroadHud::devUiDrawElement(QPainter &p, int x, int y, const char* value, const char* label, const char* units, QColor &color) {
+  configFont(p, "Open Sans", 30 * 2, "SemiBold");
+  drawColoredText(p, x + 92, y + 80, QString(value), color);
+
+  configFont(p, "Open Sans", 28, "Regular");
+  drawText(p, x + 92, y + 80 + 42, QString(label), 255);
+
+  if (strlen(units) > 0) {
+    p.save();
+    p.translate(x + 54 + 30 - 3 + 92, y + 37 + 25);
+    p.rotate(-90);
+    drawText(p, 0, 0, QString(units), 255);
+    p.restore();
+  }
+
+  return 110;
+}
+
+void OnroadHud::drawLeftDevUi(QPainter &p, int x, int y) {
+  int rh = 5;
+  int ry = y;
+
+  // Add Relative Distance to Primary Lead Car
+  // Unit: Meters
+  if (true) {
+    char val_str[8];
+    char units_str[8];
+    QColor valueColor = QColor(255, 255, 255, 255);
+
+    if (lead_status) {
+      // Orange if close, Red if very close
+      if (lead_d_rel < 5) {
+        valueColor = QColor(255, 0, 0, 255); 
+      } else if (lead_d_rel < 15) {
+        valueColor = QColor(255, 188, 0, 255);
+      }
+      snprintf(val_str, sizeof(val_str), "%d", (int)lead_d_rel);
+    } else {
+      snprintf(val_str, sizeof(val_str), "-");
+    }
+
+    snprintf(units_str, sizeof(units_str), "m");
+
+    rh += devUiDrawElement(p, x, ry, val_str, "REL DIST", units_str, valueColor);
+    ry = y + rh;
+  }
+
+  // Add Relative Velocity vs Primary Lead Car
+  // Unit: kph if metric, else mph
+  if (true) {
+    char val_str[8];
+    QColor valueColor = QColor(255, 255, 255, 255);
+
+     if (lead_status) {
+       // Red if approaching faster than 10mph
+       // Orange if approaching (negative)
+       if (lead_v_rel < -4.4704) {
+        valueColor = QColor(255, 0, 0, 255); 
+       } else if (lead_v_rel < 0) {
+         valueColor = QColor(255, 188, 0, 255);
+       }
+
+       if (speedUnit == "mph") {
+         snprintf(val_str, sizeof(val_str), "%d", (int)(lead_v_rel * 2.236936)); //mph
+       } else {
+         snprintf(val_str, sizeof(val_str), "%d", (int)(lead_v_rel * 3.6)); //kph
+       }
+     } else {
+       snprintf(val_str, sizeof(val_str), "-");
+     }
+
+    rh += devUiDrawElement(p, x, ry, val_str, "REL SPEED", speedUnit.toStdString().c_str(), valueColor);
+    ry = y + rh;
+  }
+
+  // Add Real Steering Angle
+  // Unit: Degrees
+  if (true) {
+    char val_str[8];
+    QColor valueColor = QColor(255, 255, 255, 255);
+
+    // Red if large steering angle
+    // Orange if moderate steering angle
+    if (std::fabs(angleSteers) > 12) {
+      valueColor = QColor(255, 0, 0, 255);
+    } else if (std::fabs(angleSteers) > 6) {
+      valueColor = QColor(255, 188, 0, 255);
+    }
+
+    snprintf(val_str, sizeof(val_str), "%.0f%s%s", angleSteers , "°", "");
+
+    rh += devUiDrawElement(p, x, ry, val_str, "REAL STEER", "", valueColor);
+    ry = y + rh;
+  }
+
+  // Add Desired Steering Angle
+  // Unit: Degrees
+  if (true) {
+    char val_str[8];
+    QColor valueColor = QColor(255, 255, 255, 255);
+
+    if (status != STATUS_DISENGAGED) {
+      // Red if large steering angle
+      // Orange if moderate steering angle
+      if (std::fabs(angleSteers) > 12) {
+        valueColor = QColor(255, 0, 0, 255);
+      } else if (std::fabs(angleSteers) > 6) {
+        valueColor = QColor(255, 188, 0, 255);
+      }
+
+      snprintf(val_str, sizeof(val_str), "%.0f%s%s", steerAngleDesired, "°", "");
+    } else {
+      snprintf(val_str, sizeof(val_str), "-");
+    }
+
+    rh += devUiDrawElement(p, x, ry, val_str, "DESIR STEER", "", valueColor);
+    ry = y + rh;
+  }
+
+  // Add Engine RPM
+  // Unit: RPM
+  if (true) {
+    char val_str[8];
+    QColor valueColor = QColor(255, 255, 255, 255);
+
+    if(engineRPM == 0) {
+      snprintf(val_str, sizeof(val_str), "OFF");
+    } else {
+      snprintf(val_str, sizeof(val_str), "%d", (engineRPM));
+    }
+
+    rh += devUiDrawElement(p, x, ry, val_str, "ENG RPM", "", valueColor);
+    ry = y + rh;
+  }
+
+  rh += 25;
+  p.setBrush(QColor(0, 0, 0, 0));
+  QRect ldu(x, y, 184, rh);
+  p.drawRoundedRect(ldu, 20, 20); 
+} 
 
 void OnroadHud::paintEvent(QPaintEvent *event) {
   QPainter p(this);
@@ -234,10 +385,19 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
              engage_img, bg_colors[status], 1.0);
   }
 
-  // dm icon
   if (!hideDM) {
-    drawIcon(p, radius / 2 + (bdr_s * 2), rect().bottom() - footer_h / 2,
+    // left Dev UI
+    drawLeftDevUi(p, bdr_s * 2, bdr_s * 2 + rc.height());
+
+    // dm icon
+    drawIcon(p, rc.center().x(), rect().bottom() - footer_h / 2 + 50,
              dm_img, QColor(0, 0, 0, 70), dmActive ? 1.0 : 0.2);
+
+    p.setOpacity(1.0); // dmActive will determine opacity of brake_img's bg without this :/ -wirelessnet2
+
+    // brake icon
+    drawIcon(p, rc.center().x() + 250, rect().bottom() - footer_h / 2 + 50,
+              brake_img, QColor(0, 0, 0, 70), braking ? 1.0 : 0.2);
   }
 }
 
@@ -248,6 +408,16 @@ void OnroadHud::drawText(QPainter &p, int x, int y, const QString &text, int alp
   real_rect.moveCenter({x, y - real_rect.height() / 2});
 
   p.setPen(QColor(0xff, 0xff, 0xff, alpha));
+  p.drawText(real_rect.x(), real_rect.bottom(), text);
+}
+
+void OnroadHud::drawColoredText(QPainter &p, int x, int y, const QString &text, QColor &color) {
+  QFontMetrics fm(p.font());
+  QRect init_rect = fm.boundingRect(text);
+  QRect real_rect = fm.boundingRect(init_rect, 0, text);
+  real_rect.moveCenter({x, y - real_rect.height() / 2});
+
+  p.setPen(color);
   p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
@@ -307,8 +477,31 @@ void NvgWindow::drawLaneLines(QPainter &painter, const UIScene &scene) {
   }
   // paint path
   QLinearGradient bg(0, height(), 0, height() / 4);
-  bg.setColorAt(0, scene.end_to_end ? redColor() : QColor(255, 255, 255));
-  bg.setColorAt(1, scene.end_to_end ? redColor(0) : QColor(255, 255, 255, 0));
+  // wirelessnet2's rainbow barf path
+  if (scene.enabled) {
+    // openpilot is not disengaged
+    if (scene.steeringPressed) {
+      // The user is applying torque to the steering wheel
+      bg.setColorAt(0, QColor(0, 191, 255, 255));
+      bg.setColorAt(1, QColor(0, 95, 128, 50));
+    } else {
+      // Draw colored track
+      int torqueScale = (int)std::fabs(510 * (float)scene.pidStateOutput);
+      int red_lvl = std::fmin(255, torqueScale);
+      int green_lvl = std::fmin(255, 510 - torqueScale);
+      bg.setColorAt(0, QColor(red_lvl, green_lvl, 0, 255));
+      bg.setColorAt(1, QColor((int)(0.5 * red_lvl), (int)(0.5 * green_lvl), 0, 50));
+    }
+  } else if (!scene.end_to_end) {
+    // Draw white track when disengaged and not end_to_end
+    bg.setColorAt(0, QColor(255, 255, 255));
+    bg.setColorAt(1, QColor(255, 255, 255, 0));
+  } else {
+    // Draw red vision track when disengaged and end_to_end
+    bg.setColorAt(0, redColor());
+    bg.setColorAt(1, redColor(0));
+  }
+
   painter.setBrush(bg);
   painter.drawPolygon(scene.track_vertices.v, scene.track_vertices.cnt);
 }

@@ -19,6 +19,13 @@ class OnroadHud : public QWidget {
   Q_PROPERTY(bool dmActive MEMBER dmActive NOTIFY valueChanged);
   Q_PROPERTY(bool hideDM MEMBER hideDM NOTIFY valueChanged);
   Q_PROPERTY(int status MEMBER status NOTIFY valueChanged);
+  Q_PROPERTY(bool braking MEMBER braking NOTIFY valueChanged);
+  Q_PROPERTY(int lead_status MEMBER lead_status NOTIFY valueChanged);
+  Q_PROPERTY(float lead_d_rel MEMBER lead_d_rel NOTIFY valueChanged);
+  Q_PROPERTY(float lead_v_rel MEMBER lead_v_rel NOTIFY valueChanged);
+  Q_PROPERTY(float angleSteers MEMBER angleSteers NOTIFY valueChanged);
+  Q_PROPERTY(float steerAngleDesired MEMBER steerAngleDesired NOTIFY valueChanged);
+  Q_PROPERTY(int engineRPM MEMBER engineRPM NOTIFY valueChanged);
 
 public:
   explicit OnroadHud(QWidget *parent);
@@ -28,10 +35,14 @@ private:
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity);
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
   void paintEvent(QPaintEvent *event) override;
+  void drawLeftDevUi(QPainter &p, int x, int y);
+  int devUiDrawElement(QPainter &p, int x, int y, const char* value, const char* label, const char* units, QColor &color);
+  void drawColoredText(QPainter &p, int x, int y, const QString &text, QColor &color);
 
   QPixmap engage_img;
   QPixmap dm_img;
-  const int radius = 192;
+  QPixmap brake_img;
+  const int radius = 160;
   const int img_size = (radius / 2) * 1.5;
   QString speed;
   QString speedUnit;
@@ -40,7 +51,15 @@ private:
   bool engageable = false;
   bool dmActive = false;
   bool hideDM = false;
+  bool braking = false;
   int status = STATUS_DISENGAGED;
+
+  int lead_status;
+  float lead_d_rel = 0;
+  float lead_v_rel = 0;
+  float angleSteers = 0;
+  float steerAngleDesired = 0;
+  int engineRPM = 0;
 
 signals:
   void valueChanged();
