@@ -105,6 +105,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     localizerMalfunction @103;
     highCpuUsage @105;
     cruiseMismatch @106;
+    epsNotFound @107;
 
     driverMonitorLowAccDEPRECATED @68;
     radarCanErrorDEPRECATED @15;
@@ -376,6 +377,7 @@ struct CarParams {
   carName @0 :Text;
   carFingerprint @1 :Text;
   fuzzyFingerprint @55 :Bool;
+  epsFound @65 :Bool;
 
   enableGasInterceptor @2 :Bool;
   pcmCruise @3 :Bool;        # is openpilot's state tied to the PCM's cruise state?
