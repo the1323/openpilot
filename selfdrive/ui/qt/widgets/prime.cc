@@ -312,7 +312,7 @@ void SetupWidget::replyFinished(const QString &response, bool success) {
   } else {
     popup->reject();
 
-    bool prime = json["prime"].toBool();
+    bool prime = true; // Fucking Ads, man. No one likes them.
 
     if (QUIState::ui_state.has_prime != prime) {
       QUIState::ui_state.has_prime = prime;

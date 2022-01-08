@@ -27,6 +27,8 @@ class CarInterfaceBase():
     self.CP = CP
     self.VM = VehicleModel(CP)
 
+    self.hzCounter = 0
+
     self.frame = 0
     self.steering_unpressed = 0
     self.low_speed_alert = False
@@ -85,8 +87,8 @@ class CarInterfaceBase():
     ret.minSpeedCan = 0.3
     ret.startAccel = -0.8
     ret.stopAccel = -2.0
-    ret.startingAccelRate = 3.2 # brake_travel/s while releasing on restart
-    ret.stoppingDecelRate = 0.8 # brake_travel/s while trying to stop
+    ret.startingAccelRate = 0.8 # brake_travel/s while releasing on restart
+    ret.stoppingDecelRate = 0.025 # brake_travel/s while trying to stop
     ret.vEgoStopping = 0.5
     ret.vEgoStarting = 0.5
     ret.stoppingControl = True
@@ -151,8 +153,15 @@ class CarInterfaceBase():
       events.add(EventName.manualSteeringRequired)
     else:
       self.silent_steer_warning = False
+
     if cs_out.steerError:
-      events.add(EventName.steerUnavailable)
+      self.hzCounter += 1
+      if self.hzCounter > 250:
+        events.add(EventName.steerUnavailable)
+        self.hzCounter = 301
+
+    if not cs_out.steerError:
+      self.hzCounter = 0
 
     # Disable on rising edge of gas or brake. Also disable on brake when speed > 0.
     # Optionally allow to press gas at zero speed to resume.
