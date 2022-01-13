@@ -13,7 +13,6 @@ TransmissionType = car.CarParams.TransmissionType
 def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
   # this function generates lists for signal, messages and initial values
   signals = [
-    ("BRAKE_LIGHTS", "BRAKE_COMMAND", 0),
     ("ENGINE_RPM", "POWERTRAIN_DATA", 0),
     ("XMISSION_SPEED", "ENGINE_DATA", 0),
     ("WHEEL_SPEED_FL", "WHEEL_SPEEDS", 0),
@@ -186,7 +185,6 @@ class CarState(CarStateBase):
     self.cruise_setting = 0
     self.v_cruise_pcm_prev = 0
     self.engineRPM = 0
-    self.brakeLight = False
     self.gas_has_been_pressed_since_cruise_off = False
     self.pcm_acc_status_prev = False
     self.openpilotEngagedWithGasDepressed = False
@@ -256,7 +254,6 @@ class CarState(CarStateBase):
       250, cp.vl["SCM_FEEDBACK"]["LEFT_BLINKER"], cp.vl["SCM_FEEDBACK"]["RIGHT_BLINKER"])
     ret.brakeHoldActive = cp.vl["VSA_STATUS"]["BRAKE_HOLD_ACTIVE"] == 1
     self.engineRPM = cp.vl["POWERTRAIN_DATA"]["ENGINE_RPM"]
-    self.brakeLight = cp.v1["BRAKE_COMMAND"]["BRAKE_LIGHTS"]
 
     if self.CP.carFingerprint in (CAR.CIVIC, CAR.ODYSSEY, CAR.ODYSSEY_CHN, CAR.CRV_5G, CAR.ACCORD, CAR.ACCORDH, CAR.CIVIC_BOSCH,
                                   CAR.CIVIC_BOSCH_DIESEL, CAR.CRV_HYBRID, CAR.INSIGHT, CAR.ACURA_RDX_3G, CAR.HONDA_E, CAR.CLARITY):

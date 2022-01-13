@@ -192,7 +192,7 @@ void OnroadHud::updateState(const UIState &s) {
   setProperty("engageable", cs.getEngageable() || cs.getEnabled());
   setProperty("dmActive", sm["driverMonitoringState"].getDriverMonitoringState().getIsActiveMode());
   // -1.96133 is -0.2g of braking force, which is where most one-pedal enabled cars turn on brakelight -wn2
-  setProperty("braking", sm["carState"].getCarState().getBrakeLight() || sm["carState"].getCarState().getBrakePressed());
+  setProperty("braking", sm["carControl"].getCarControl().getActuators().getAccel() < -1.96133 || sm["carState"].getCarState().getBrakePressed());
   
   const auto leadOne = sm["radarState"].getRadarState().getLeadOne();
   setProperty("lead_d_rel", leadOne.getDRel());
