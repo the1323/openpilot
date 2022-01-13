@@ -386,6 +386,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.lkMode = self.CS.lkMode
     ret.engineRPM = self.CS.engineRPM
+    ret.brakeLight = self.CS.brakeLight
     ret.brakeToggle = self.CS.brakeToggle
     buttonEvents = []
 

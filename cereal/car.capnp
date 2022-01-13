@@ -256,7 +256,7 @@ struct CarState {
   }
 
   errorsDEPRECATED @0 :List(CarEvent.EventName);
-  brakeLightsDEPRECATED @19 :Bool;
+  brakeLight @19 :Bool;
 }
 
 # ******* radar state @ 20hz *******
