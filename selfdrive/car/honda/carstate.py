@@ -177,17 +177,18 @@ class CarState(CarStateBase):
     self.shifter_values = can_define.dv[self.gearbox_msg]["GEAR_SHIFTER"]
     self.steer_status_values = defaultdict(lambda: "UNKNOWN", can_define.dv["STEER_STATUS"]["STEER_STATUS"])
 
-    self.brake_error = False
-    self.brake_switch_prev = False
-    self.brake_switch_active = False
     self.lkMode = True
     self.brakeToggle = True
-    self.gasToggle = False
+    self.gasToggle = True
     self.brake_switch_prev = 0
     self.brake_switch_prev_ts = 0
     self.cruise_setting = 0
     self.v_cruise_pcm_prev = 0
-    
+    self.engineRPM = 0
+    self.gas_has_been_pressed_since_cruise_off = False
+    self.pcm_acc_status_prev = False
+    self.openpilotEngagedWithGasDepressed = False
+    self.preEnableAlert = False
 
   def update(self, cp, cp_cam, cp_body):
     ret = car.CarState.new_message()
