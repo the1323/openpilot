@@ -36,9 +36,9 @@ def manager_init():
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params = [
-    ("CompletedTrainingVersion", "1"),
+    ("CompletedTrainingVersion", "0"),
     ("DisengageOnGas", "1"),
-    ("HasAcceptedTerms", "1"),
+    ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
   ]
   if not PC:
