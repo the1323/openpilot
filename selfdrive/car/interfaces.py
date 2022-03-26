@@ -10,8 +10,6 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from common.params import Params
-
 
 GearShifter = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
@@ -35,7 +33,6 @@ class CarInterfaceBase():
     self.steering_unpressed = 0
     self.low_speed_alert = False
     self.silent_steer_warning = True
-    self.disengage_on_gas = Params().get_bool("DisengageOnGas")
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -75,7 +72,6 @@ class CarInterfaceBase():
   def get_std_params(candidate, fingerprint):
     ret = car.CarParams.new_message()
     ret.carFingerprint = candidate
-    ret.unsafeMode = 1 if Params().get_bool("DisengageOnGas") else 0
 
     # standard ALC params
     ret.steerControlType = car.CarParams.SteerControlType.torque
@@ -130,7 +126,7 @@ class CarInterfaceBase():
       events.add(EventName.wrongCarMode)
     if cs_out.espDisabled:
       events.add(EventName.espDisabled)
-    if cs_out.gasPressed and self.disengage_on_gas:
+    if cs_out.gasPressed:
       events.add(EventName.gasPressed)
     if cs_out.stockFcw:
       events.add(EventName.stockFcw)
@@ -172,7 +168,7 @@ class CarInterfaceBase():
     # e.g. Chrysler does not spam the resume button yet, so resuming with gas is handy. FIXME!
     if (cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill)):
       events.add(EventName.pedalPressed)
-    if cs_out.cruiseState.enabled and self.disengage_on_gas and (cs_out.gasPressed and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed):
+    if cs_out.cruiseState.enabled and (cs_out.gasPressed and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed):
       events.add(EventName.pedalPressed)
 
     # we engage when pcm is active (rising edge)
