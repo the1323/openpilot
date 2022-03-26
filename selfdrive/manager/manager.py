@@ -37,7 +37,6 @@ def manager_init():
 
   default_params = [
     ("CompletedTrainingVersion", "0"),
-    ("DisengageOnGas", "1"),
     ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
   ]
