@@ -144,6 +144,7 @@ def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
     checks += [
       ("BRAKE_ERROR", 100),
       ("EPB_STATUS", 50),
+      ("GAS_PEDAL_2", 100),
     ]
 
   # add gas interceptor reading if we are using it
